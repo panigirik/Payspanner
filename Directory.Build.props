@@ -1,0 +1,21 @@
+<Project>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+
+		<!--
+			Набор анализаторов зафиксирован версией, а не словом latest:
+			latest берёт правила того SDK, который стоит на машине, и одна и та
+			же ветка собирается зелёной локально и красной в CI. Цифра здесь
+			совпадает с SDK из global.json, поэтому набор правил один и тот же
+			везде; менять её - осознанный шаг, а не побочный эффект обновления
+			SDK на машине.
+		-->
+		<AnalysisLevel>10.0</AnalysisLevel>
+		<AnalysisMode>All</AnalysisMode>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+	</PropertyGroup>
+</Project>

@@ -1,0 +1,131 @@
+{
+  "Providers": {
+    "Example": {
+      "Code": "EXAMPLE",
+      "DisplayName": "Example",
+      "Firms": [
+        "firm-a"
+      ],
+      "Capabilities": [
+        "PayinExecute",
+        "PayinCallback"
+      ],
+      "BaseUrl": "https://api.example.test/",
+      "TimeoutSeconds": 30,
+      "Masking": {
+        "Partial": [
+          "card"
+        ],
+        "Full": []
+      },
+      "Accounts": {
+        "main": {
+          "ApiKey": "$secret:Example:ApiKey",
+          "SecretKey": "$secret:Example:SecretKey"
+        }
+      },
+      "Auth": {
+        "Kind": "Bearer",
+        "Value": "{account.ApiKey}"
+      },
+      "Signing": {
+        "Request": {
+          "Algorithm": "Md5",
+          "Base": "{body:query}",
+          "Encoding": "HexUpper",
+          "Key": "{account.SecretKey}",
+          "Header": "X-Sign",
+          "Required": true
+        },
+        "PayinCallback": {
+          "Algorithm": "Md5",
+          "Base": "{body:query}",
+          "Encoding": "HexUpper",
+          "Key": "{account.SecretKey}",
+          "Header": "X-Sign",
+          "Required": true
+        }
+      },
+      "Payin": {
+        "Create": {
+          "Path": "v1/charges",
+          "Verb": "POST",
+          "ContentType": "Json",
+          "Body": {
+            "attemptId": "{attemptId}",
+            "sum": "num:{sum}",
+            "sumMinor": "num:{sum:minor}",
+            "currency": "{currency}",
+            "method": "{method.ProviderMethod}",
+            "callbackUrl": "{callbackUrl}",
+            "clientPhone": "{clientPhone}",
+            "now": "num:{now:unix}"
+          }
+        },
+        "Response": {
+          "PaymentId": "$.id",
+          "Redirect": "$.url",
+          "ErrorCode": "$.errorCode",
+          "ErrorMessage": "$.errorMessage",
+          "Outcome": [
+            {
+              "When": "http:422",
+              "Result": "Error",
+              "Code": "Api.HttpError",
+              "Message": "http"
+            },
+            {
+              "When": "$.status == refused",
+              "Result": "Declined",
+              "Code": "Api.Refused",
+              "Message": "refused"
+            },
+            {
+              "When": "http:2xx and $.id exists",
+              "Result": "Accepted"
+            }
+          ],
+          "Requisites": [
+            {
+              "When": "$.card exists",
+              "Type": "Card",
+              "Value": "$.card"
+            },
+            {
+              "When": "$.phone exists",
+              "Type": "Phone",
+              "Value": "$.phone"
+            },
+            {
+              "When": "$.account exists",
+              "Type": "BankAccount",
+              "Value": "$.account"
+            }
+          ]
+        },
+        "Callback": {
+          "Format": "Json",
+          "AttemptId": "$.attemptId",
+          "ProviderPaymentId": "$.id",
+          "Status": "$.status",
+          "StatusMap": {
+            "paid": "PaymentSucceeded",
+            "failed": "PaymentFailed",
+            "expired": "PaymentExpired",
+            "pending": "NoAction"
+          },
+          "Amount": "$.amount",
+          "AmountUnit": "Major"
+        }
+      },
+      "PaymentMethods": {
+        "P2P_PAYIN_CARD_RUB_RUS_ANY_RUB_RUS_ANY": {
+          "ProviderMethod": "card",
+          "Currency": "RUB",
+          "DetailsType": "Card",
+          "Account": "main"
+        }
+      }
+    }
+  }
+}

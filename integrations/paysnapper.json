@@ -1,0 +1,172 @@
+{
+  "Providers": {
+    "PaySnapper": {
+      "Code": "PAYSNAPPER",
+      "DisplayName": "PaySnapper",
+      "Firms": [
+        "firm-a"
+      ],
+      "Capabilities": [
+        "PayinExecute",
+        "PayinCallback"
+      ],
+      "BaseUrl": "https://api.paysnapper.xyz/",
+      "TimeoutSeconds": 30,
+      "Notes": "Подпись колбэка не проверяется: касса кладёт её в поле тела signature, а движок сверяет подпись колбэка только из заголовка. Перед зачислением подтверждать итог запросом status.",
+      "Masking": {
+        "Partial": [
+          "customer_id"
+        ],
+        "Full": []
+      },
+      "Accounts": {
+        "main": {
+          "MerchantId": "$secret:PaySnapper:MerchantId",
+          "SecretKey": "$secret:PaySnapper:SecretKey"
+        }
+      },
+      "Auth": {
+        "Kind": "None"
+      },
+      "Signing": {
+        "Request": {
+          "Algorithm": "HmacSha512",
+          "Base": "{body:kv}",
+          "Encoding": "HexLower",
+          "Key": "{account.SecretKey}",
+          "BodyField": "signature",
+          "Required": true
+        },
+        "PayinCallback": {
+          "Algorithm": "None"
+        }
+      },
+      "Payin": {
+        "Create": {
+          "Path": "PUBLIC_ID/payment_c2b",
+          "Verb": "POST",
+          "ContentType": "Json",
+          "Body": {
+            "merchant_id": "{account.MerchantId}",
+            "customer_id": "{clientPhone}",
+            "order_id": "{attemptId}",
+            "amount": "{sum}.00",
+            "currency": "{currency}",
+            "callback_url": "{callbackUrl}",
+            "provider_id": "num:{method.ProviderMethod}"
+          }
+        },
+        "Response": {
+          "PaymentId": "$.transaction_id",
+          "ErrorCode": "$.result.code",
+          "ErrorMessage": "$.result.message",
+          "Outcome": [
+            {
+              "When": "http:2xx and $.result.code == 10201",
+              "Result": "Error",
+              "Code": "Api.Auth"
+            },
+            {
+              "When": "http:2xx and $.result.code == 0 and $.status in [3, 4]",
+              "Result": "Declined",
+              "Code": "Api.Refused"
+            },
+            {
+              "When": "http:2xx and $.result.code == 0 and $.status in [0, 1, 2]",
+              "Result": "Accepted"
+            },
+            {
+              "When": "http:2xx and $.result.code exists",
+              "Result": "Error",
+              "Code": "Api.Rejected"
+            }
+          ]
+        },
+        "Callback": {
+          "Format": "Json",
+          "AttemptId": "$.order_id",
+          "ProviderPaymentId": "$.transaction_id",
+          "Status": "$.status",
+          "StatusMap": {
+            "0": "NoAction",
+            "1": "NoAction",
+            "2": "PaymentSucceeded",
+            "3": "PaymentFailed",
+            "4": "PaymentFailed",
+            "6": "NoAction"
+          },
+          "Amount": "$.amount",
+          "AmountUnit": "Major"
+        }
+      },
+      "PaymentMethods": {
+        "P2P_PAYIN_PHONE_XOF_BEN_MOOV_XOF_BEN_MOOV": {
+          "ProviderMethod": "836",
+          "Currency": "XOF",
+          "DetailsType": "Phone",
+          "Account": "main",
+          "AmountStep": 5
+        },
+        "P2P_PAYIN_PHONE_XOF_BEN_MTN_XOF_BEN_MTN": {
+          "ProviderMethod": "835",
+          "Currency": "XOF",
+          "DetailsType": "Phone",
+          "Account": "main",
+          "MinAmount": 200,
+          "MaxAmount": 1500000,
+          "AmountStep": 5
+        },
+        "P2P_PAYIN_PHONE_XOF_BEN_CELTIIS_XOF_BEN_CELTIIS": {
+          "ProviderMethod": "10007",
+          "Currency": "XOF",
+          "DetailsType": "Phone",
+          "Account": "main",
+          "MinAmount": 200,
+          "MaxAmount": 2000000,
+          "AmountStep": 5
+        },
+        "P2P_PAYIN_PHONE_XOF_NER_AIRTEL_XOF_NER_AIRTEL": {
+          "ProviderMethod": "9564",
+          "Currency": "XOF",
+          "DetailsType": "Phone",
+          "Account": "main",
+          "MinAmount": 500,
+          "MaxAmount": 500000,
+          "AmountStep": 5
+        },
+        "P2P_PAYIN_PHONE_XOF_NER_AMANA_XOF_NER_AMANA": {
+          "ProviderMethod": "9562",
+          "Currency": "XOF",
+          "DetailsType": "Phone",
+          "Account": "main",
+          "MinAmount": 500,
+          "MaxAmount": 500000,
+          "AmountStep": 5
+        },
+        "P2P_PAYIN_PHONE_XOF_NER_ZAMANI_XOF_NER_ZAMANI": {
+          "ProviderMethod": "9563",
+          "Currency": "XOF",
+          "DetailsType": "Phone",
+          "Account": "main",
+          "MinAmount": 500,
+          "MaxAmount": 500000,
+          "AmountStep": 5
+        },
+        "P2P_PAYIN_PHONE_KES_KEN_MPESASAFARICOM_KES_KEN_MPESASAFARICOM": {
+          "ProviderMethod": "292",
+          "Currency": "KES",
+          "DetailsType": "Phone",
+          "Account": "main",
+          "AmountStep": 1
+        },
+        "P2P_PAYIN_PHONE_KES_KEN_AIRTEL_KES_KEN_AIRTEL": {
+          "ProviderMethod": "293",
+          "Currency": "KES",
+          "DetailsType": "Phone",
+          "Account": "main",
+          "AmountStep": 1
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+#!/bin/sh
+# Включить для клона: git config core.hooksPath tools/hooks
+# Гейт - tools/verify.sh, один для хука и для tools/verify.cmd.
+# Перед пушем, а не на каждый коммит: коммиты идут быстро, вся проверка -
+# один раз на пачку. Проверяется рабочая копия: пушить то, что лежит на диске.
+set -eu
+exec sh "$(git rev-parse --show-toplevel)/tools/verify.sh"

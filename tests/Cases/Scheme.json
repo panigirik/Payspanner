@@ -1,0 +1,181 @@
+{
+  "section": "Scheme",
+  "cases": [
+    {
+      "name": "payin card accepted",
+      "kind": "payin",
+      "firm": "firm-a",
+      "clock": "2026-01-15T10:00:00Z",
+      "note": "Create returns an id, a card and a url. The body carries the amount and the fixed unix time.",
+      "settings": {},
+      "request": {
+        "AttemptId": "att-payin",
+        "MethodCode": "P2P_PAYIN_CARD_RUB_RUS_ANY_RUB_RUS_ANY",
+        "Sum": 1500,
+        "Currency": "RUB",
+        "CallbackUrl": "https://callback.test/payin",
+        "ClientPhone": "+10000000000",
+        "Firm": "firm-a"
+      },
+      "replies": [
+        {
+          "status": 200,
+          "body": {
+            "id": "pay-1",
+            "url": "https://pay.scheme.test/go/pay-1",
+            "card": "token-card-1"
+          },
+          "path": "v1/orders",
+          "httpMethod": "POST",
+          "contentType": "application/json"
+        }
+      ],
+      "expected": {
+        "kind": "Accepted",
+        "code": "",
+        "providerPaymentId": "pay-1",
+        "requisiteType": "Card",
+        "requisiteValue": "token-card-1",
+        "redirect": "https://pay.scheme.test/go/pay-1",
+        "callbackStatus": "",
+        "attemptId": "",
+        "rawStatus": "",
+        "calls": [
+          {
+            "method": "POST",
+            "url": "https://pay.scheme.test/v1/orders",
+            "contentType": "application/json",
+            "body": "{\"attemptId\":\"att-payin\",\"sum\":1500,\"sumMinor\":150000,\"currency\":\"RUB\",\"method\":\"card\",\"callbackUrl\":\"https://callback.test/payin\",\"clientPhone\":\"+10000000000\",\"now\":1768471200}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "payin declined",
+      "kind": "payin",
+      "firm": "firm-a",
+      "clock": "2026-01-15T10:00:00Z",
+      "note": "Status refused declines the payment and does not keep the card.",
+      "settings": {},
+      "request": {
+        "AttemptId": "att-decline",
+        "MethodCode": "P2P_PAYIN_CARD_RUB_RUS_ANY_RUB_RUS_ANY",
+        "Sum": 1500,
+        "Currency": "RUB",
+        "CallbackUrl": "https://callback.test/payin",
+        "ClientPhone": "+10000000000",
+        "Firm": "firm-a"
+      },
+      "replies": [
+        {
+          "status": 200,
+          "body": {
+            "id": "pay-2",
+            "status": "refused",
+            "card": "token-card-9"
+          },
+          "path": "v1/orders",
+          "httpMethod": "POST",
+          "contentType": "application/json"
+        }
+      ],
+      "expected": {
+        "kind": "Declined",
+        "code": "Api.Refused",
+        "providerPaymentId": "pay-2",
+        "requisiteType": "",
+        "requisiteValue": "",
+        "redirect": "",
+        "callbackStatus": "",
+        "attemptId": "",
+        "rawStatus": "",
+        "calls": [
+          {
+            "method": "POST",
+            "url": "https://pay.scheme.test/v1/orders",
+            "contentType": "application/json",
+            "body": "{\"attemptId\":\"att-decline\",\"sum\":1500,\"sumMinor\":150000,\"currency\":\"RUB\",\"method\":\"card\",\"callbackUrl\":\"https://callback.test/payin\",\"clientPhone\":\"+10000000000\",\"now\":1768471200}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "payin callback paid",
+      "kind": "payin-callback",
+      "firm": "firm-a",
+      "clock": "2026-01-15T10:00:00Z",
+      "note": "HMAC-SHA256 hex lower of the raw body in X-Signature.",
+      "settings": {},
+      "callback": {
+        "body": "{\"attemptId\":\"att-cb\",\"id\":\"pay-9\",\"status\":\"paid\",\"amount\":100}",
+        "contentType": "application/json",
+        "headers": {
+          "X-Signature": "f7cfd17027ef9595ff44b47235ac79ee0effc5282ee69ea604e4264bf37ad314"
+        },
+        "query": {},
+        "path": "/callback"
+      },
+      "replies": [],
+      "expected": {
+        "kind": "",
+        "code": "",
+        "providerPaymentId": "pay-9",
+        "requisiteType": "",
+        "requisiteValue": "",
+        "redirect": "",
+        "callbackStatus": "PaymentSucceeded",
+        "attemptId": "att-cb",
+        "amount": 100,
+        "rawStatus": "paid",
+        "calls": []
+      }
+    },
+    {
+      "name": "payout bank accepted",
+      "kind": "payout",
+      "firm": "firm-a",
+      "clock": "2026-01-15T10:00:00Z",
+      "note": "Payout create posts to v1/payouts and reads the id.",
+      "settings": {},
+      "request": {
+        "AttemptId": "att-payout",
+        "MethodCode": "P2P_PAYOUT_BANK_ACCOUNT_RUB_RUS_ANY_RUB_RUS_ANY",
+        "Sum": 2500,
+        "Currency": "RUB",
+        "CallbackUrl": "https://callback.test/payout",
+        "ClientPhone": "+10000000000",
+        "Firm": "firm-a"
+      },
+      "replies": [
+        {
+          "status": 200,
+          "body": {
+            "id": "out-1"
+          },
+          "path": "v1/payouts",
+          "httpMethod": "POST",
+          "contentType": "application/json"
+        }
+      ],
+      "expected": {
+        "kind": "Accepted",
+        "code": "",
+        "providerPaymentId": "out-1",
+        "requisiteType": "",
+        "requisiteValue": "",
+        "redirect": "",
+        "callbackStatus": "",
+        "attemptId": "",
+        "rawStatus": "",
+        "calls": [
+          {
+            "method": "POST",
+            "url": "https://pay.scheme.test/v1/payouts",
+            "contentType": "application/json",
+            "body": "{\"attemptId\":\"att-payout\",\"sum\":2500,\"sumMinor\":250000,\"currency\":\"RUB\",\"method\":\"bank\",\"callbackUrl\":\"https://callback.test/payout\",\"clientPhone\":\"+10000000000\",\"now\":1768471200}"
+          }
+        ]
+      }
+    }
+  ]
+}

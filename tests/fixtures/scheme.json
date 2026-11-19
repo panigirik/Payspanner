@@ -1,0 +1,221 @@
+{
+  "Providers": {
+    "Scheme": {
+      "Code": "SCHEME",
+      "DisplayName": "Scheme",
+      "Firms": [
+        "firm-a"
+      ],
+      "Capabilities": [
+        "PayinExecute",
+        "PayinCallback",
+        "PayoutExecute",
+        "PayoutCallback"
+      ],
+      "BaseUrl": "https://pay.scheme.test/",
+      "TimeoutSeconds": 30,
+      "Accounts": {
+        "main": {
+          "ApiKey": "$secret:Scheme:ApiKey",
+          "SecretKey": "$secret:Scheme:SecretKey"
+        }
+      },
+      "Auth": {
+        "Kind": "Bearer",
+        "Value": "{account.ApiKey}"
+      },
+      "Signing": {
+        "Request": {
+          "Algorithm": "HmacSha256",
+          "Base": "{body}",
+          "Encoding": "HexLower",
+          "Key": "{account.SecretKey}",
+          "Header": "X-Signature",
+          "Required": true
+        },
+        "PayinCallback": {
+          "Algorithm": "HmacSha256",
+          "Base": "{body}",
+          "Encoding": "HexLower",
+          "Key": "{account.SecretKey}",
+          "Header": "X-Signature",
+          "Required": true
+        },
+        "PayoutCallback": {
+          "Algorithm": "HmacSha256",
+          "Base": "{body}",
+          "Encoding": "HexLower",
+          "Key": "{account.SecretKey}",
+          "Header": "X-Signature",
+          "Required": true
+        }
+      },
+      "Payin": {
+        "Create": {
+          "Path": "v1/orders",
+          "Verb": "POST",
+          "ContentType": "Json",
+          "Body": {
+            "attemptId": "{attemptId}",
+            "sum": "num:{sum}",
+            "sumMinor": "num:{sum:minor}",
+            "currency": "{currency}",
+            "method": "{method.ProviderMethod}",
+            "callbackUrl": "{callbackUrl}",
+            "clientPhone": "{clientPhone}",
+            "now": "num:{now:unix}"
+          }
+        },
+        "Response": {
+          "PaymentId": "$.id",
+          "Redirect": "$.url",
+          "ErrorCode": "$.errorCode",
+          "ErrorMessage": "$.errorMessage",
+          "Outcome": [
+            {
+              "When": "http:422",
+              "Result": "Error",
+              "Code": "Api.HttpError",
+              "Message": "http"
+            },
+            {
+              "When": "$.status == refused",
+              "Result": "Declined",
+              "Code": "Api.Refused",
+              "Message": "refused"
+            },
+            {
+              "When": "http:2xx and $.id exists",
+              "Result": "Accepted"
+            }
+          ],
+          "Requisites": [
+            {
+              "When": "$.card exists",
+              "Type": "Card",
+              "Value": "$.card"
+            },
+            {
+              "When": "$.phone exists",
+              "Type": "Phone",
+              "Value": "$.phone"
+            },
+            {
+              "When": "$.account exists",
+              "Type": "BankAccount",
+              "Value": "$.account"
+            },
+            {
+              "When": "$.qr exists",
+              "Type": "Qr",
+              "Value": "$.qr"
+            }
+          ]
+        },
+        "Callback": {
+          "Format": "Json",
+          "AttemptId": "$.attemptId",
+          "ProviderPaymentId": "$.id",
+          "Status": "$.status",
+          "StatusMap": {
+            "paid": "PaymentSucceeded",
+            "failed": "PaymentFailed",
+            "expired": "PaymentExpired",
+            "pending": "NoAction"
+          },
+          "Amount": "$.amount",
+          "AmountUnit": "Major"
+        }
+      },
+      "Payout": {
+        "Create": {
+          "Path": "v1/payouts",
+          "Verb": "POST",
+          "ContentType": "Json",
+          "Body": {
+            "attemptId": "{attemptId}",
+            "sum": "num:{sum}",
+            "sumMinor": "num:{sum:minor}",
+            "currency": "{currency}",
+            "method": "{method.ProviderMethod}",
+            "callbackUrl": "{callbackUrl}",
+            "clientPhone": "{clientPhone}",
+            "now": "num:{now:unix}"
+          }
+        },
+        "Response": {
+          "PaymentId": "$.id",
+          "Redirect": "$.url",
+          "ErrorCode": "$.errorCode",
+          "ErrorMessage": "$.errorMessage",
+          "Outcome": [
+            {
+              "When": "http:422",
+              "Result": "Error",
+              "Code": "Api.HttpError",
+              "Message": "http"
+            },
+            {
+              "When": "$.status == refused",
+              "Result": "Declined",
+              "Code": "Api.Refused",
+              "Message": "refused"
+            },
+            {
+              "When": "http:2xx and $.id exists",
+              "Result": "Accepted"
+            }
+          ]
+        },
+        "Callback": {
+          "Format": "Json",
+          "AttemptId": "$.attemptId",
+          "ProviderPaymentId": "$.id",
+          "Status": "$.status",
+          "StatusMap": {
+            "paid": "PaymentSucceeded",
+            "failed": "PaymentFailed",
+            "pending": "NoAction"
+          },
+          "Amount": "$.amount",
+          "AmountUnit": "Major"
+        }
+      },
+      "PaymentMethods": {
+        "P2P_PAYIN_CARD_RUB_RUS_ANY_RUB_RUS_ANY": {
+          "ProviderMethod": "card",
+          "Currency": "RUB",
+          "DetailsType": "Card",
+          "Account": "main",
+          "MinAmount": 100,
+          "MaxAmount": 100000
+        },
+        "P2P_PAYIN_QR_RUB_RUS_ANY_RUB_RUS_ANY": {
+          "ProviderMethod": "qr",
+          "Currency": "RUB",
+          "DetailsType": "Qr",
+          "Account": "main",
+          "MinAmount": 100,
+          "MaxAmount": 100000
+        },
+        "P2P_PAYIN_PHONE_RUB_RUS_STEP_RUB_RUS_STEP": {
+          "ProviderMethod": "phone",
+          "Currency": "RUB",
+          "DetailsType": "Phone",
+          "Account": "main",
+          "MinAmount": 100,
+          "MaxAmount": 100000,
+          "AmountStep": 5
+        },
+        "P2P_PAYOUT_BANK_ACCOUNT_RUB_RUS_ANY_RUB_RUS_ANY": {
+          "ProviderMethod": "bank",
+          "Currency": "RUB",
+          "DetailsType": "BankAccount",
+          "Account": "main",
+          "MinAmount": 100,
+          "MaxAmount": 100000
+        }
+      }
+    }
+  }
+}

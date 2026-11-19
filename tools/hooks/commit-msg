@@ -1,0 +1,24 @@
+#!/bin/sh
+# Заголовок говорит, меняет ли коммит поведение. refactor и chore(deps)
+# провод не меняют, поэтому файлы ожиданий tests/Cases в них не попадают.
+# Тронул ожидание - это feat или fix, и причина должна стоять в заголовке.
+# Включается вместе с pre-push: git config core.hooksPath tools/hooks
+set -eu
+
+subject=$(head -n 1 "$1")
+
+case "$subject" in
+    refactor*|chore\(deps\)*)
+        changed=$(git diff --cached --name-only -- tests/Cases/ || true)
+
+        if [ -n "$changed" ]
+        then
+            echo "commit-msg: '$subject' changes expectations:" >&2
+            printf '  %s\n' $changed >&2
+            echo "a refactor or a bump must not move the wire; use feat/fix with the reason" >&2
+            exit 1
+        fi
+        ;;
+esac
+
+exit 0

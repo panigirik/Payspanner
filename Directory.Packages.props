@@ -1,0 +1,25 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
+    <PackageVersion Include="System.Text.Json" Version="10.0.12" />
+
+    <!--
+      AwesomeAssertions, а не FluentAssertions: с восьмой мажорной версии
+      FluentAssertions распространяется по платной лицензии для коммерческого
+      использования. AwesomeAssertions — её форк с тем же API под Apache 2.0.
+    -->
+    <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
+
+    <!--
+      xunit.v3 — текущая линия. Сборка тестов запускается сама
+      (OutputType=Exe). Раннер — Microsoft.Testing.Platform, его выбирает
+      global.json. Поэтому здесь нет Microsoft.NET.Test.Sdk.
+    -->
+    <PackageVersion Include="xunit.v3" Version="4.0.1" />
+    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.2" />
+  </ItemGroup>
+</Project>

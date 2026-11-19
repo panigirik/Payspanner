@@ -1,0 +1,134 @@
+{
+  "section": "Example",
+  "cases": [
+    {
+      "name": "payin card accepted",
+      "kind": "payin",
+      "firm": "firm-a",
+      "clock": "2026-01-15T10:00:00Z",
+      "note": "Create posts to v1/charges and returns a card.",
+      "settings": {},
+      "request": {
+        "AttemptId": "att-payin",
+        "MethodCode": "P2P_PAYIN_CARD_RUB_RUS_ANY_RUB_RUS_ANY",
+        "Sum": 1500,
+        "Currency": "RUB",
+        "CallbackUrl": "https://callback.test/payin",
+        "ClientPhone": "+10000000000",
+        "Firm": "firm-a"
+      },
+      "replies": [
+        {
+          "status": 200,
+          "body": {
+            "id": "pay-1",
+            "url": "https://api.example.test/go/pay-1",
+            "card": "token-card-1"
+          },
+          "path": "v1/charges",
+          "httpMethod": "POST",
+          "contentType": "application/json"
+        }
+      ],
+      "expected": {
+        "kind": "Accepted",
+        "code": "",
+        "providerPaymentId": "pay-1",
+        "requisiteType": "Card",
+        "requisiteValue": "token-card-1",
+        "redirect": "https://api.example.test/go/pay-1",
+        "callbackStatus": "",
+        "attemptId": "",
+        "rawStatus": "",
+        "calls": [
+          {
+            "method": "POST",
+            "url": "https://api.example.test/v1/charges",
+            "contentType": "application/json",
+            "body": "{\"attemptId\":\"att-payin\",\"sum\":1500,\"sumMinor\":150000,\"currency\":\"RUB\",\"method\":\"card\",\"callbackUrl\":\"https://callback.test/payin\",\"clientPhone\":\"+10000000000\",\"now\":1768471200}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "payin declined",
+      "kind": "payin",
+      "firm": "firm-a",
+      "clock": "2026-01-15T10:00:00Z",
+      "note": "Status refused declines the payment and does not keep the card.",
+      "settings": {},
+      "request": {
+        "AttemptId": "att-decline",
+        "MethodCode": "P2P_PAYIN_CARD_RUB_RUS_ANY_RUB_RUS_ANY",
+        "Sum": 1500,
+        "Currency": "RUB",
+        "CallbackUrl": "https://callback.test/payin",
+        "ClientPhone": "+10000000000",
+        "Firm": "firm-a"
+      },
+      "replies": [
+        {
+          "status": 200,
+          "body": {
+            "id": "pay-2",
+            "status": "refused",
+            "card": "token-card-9"
+          },
+          "path": "v1/charges",
+          "httpMethod": "POST",
+          "contentType": "application/json"
+        }
+      ],
+      "expected": {
+        "kind": "Declined",
+        "code": "Api.Refused",
+        "providerPaymentId": "pay-2",
+        "requisiteType": "",
+        "requisiteValue": "",
+        "redirect": "",
+        "callbackStatus": "",
+        "attemptId": "",
+        "rawStatus": "",
+        "calls": [
+          {
+            "method": "POST",
+            "url": "https://api.example.test/v1/charges",
+            "contentType": "application/json",
+            "body": "{\"attemptId\":\"att-decline\",\"sum\":1500,\"sumMinor\":150000,\"currency\":\"RUB\",\"method\":\"card\",\"callbackUrl\":\"https://callback.test/payin\",\"clientPhone\":\"+10000000000\",\"now\":1768471200}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "payin callback paid",
+      "kind": "payin-callback",
+      "firm": "firm-a",
+      "clock": "2026-01-15T10:00:00Z",
+      "note": "Md5 hex upper of the body query string in X-Sign.",
+      "settings": {},
+      "callback": {
+        "body": "{\"attemptId\":\"att-cb\",\"id\":\"pay-9\",\"status\":\"paid\",\"amount\":100}",
+        "contentType": "application/json",
+        "headers": {
+          "X-Sign": "349A04F6DBB068A6F0E0D652ED7A5027"
+        },
+        "query": {},
+        "path": "/callback"
+      },
+      "replies": [],
+      "expected": {
+        "kind": "",
+        "code": "",
+        "providerPaymentId": "pay-9",
+        "requisiteType": "",
+        "requisiteValue": "",
+        "redirect": "",
+        "callbackStatus": "PaymentSucceeded",
+        "attemptId": "att-cb",
+        "amount": 100,
+        "rawStatus": "paid",
+        "calls": []
+      }
+    }
+  ]
+}
